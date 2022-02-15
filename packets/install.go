@@ -5,13 +5,13 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func (p packet) ListVersions() error {
+func (p Packet) ListVersions() error {
 	remote, err := remote.FindRemote(p.UrlType)
 	if err != nil {
 		return err
 	}
 
-	versions, err := remote.ListPacketVersions(p.Url)
+	versions, err := remote.ListPacketVersions(p.URL)
 	if err != nil {
 		return err
 	}
@@ -20,7 +20,7 @@ func (p packet) ListVersions() error {
 	return nil
 }
 
-func (p packet) Install() (string, error) {
+func (p Packet) Install() (string, error) {
 	err := p.ListVersions()
 	if err != nil {
 		log.Error(err)

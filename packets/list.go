@@ -5,10 +5,9 @@ import (
 
 	"github.com/it-sova/bin-manager/repo"
 	log "github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v3"
 )
 
-var packets []packet
+var packets []Packet
 
 func Load() {
 	repos := repo.RepoList()
@@ -34,21 +33,11 @@ func Load() {
 	}
 }
 
-func NewPacket(config []byte) (packet, error) {
-	packet := packet{}
-	err := yaml.Unmarshal(config, &packet)
-	if err != nil {
-		return packet, err
-	}
-
-	return packet, nil
-}
-
 func ListAll() {
 	log.Printf("%+v", packets)
 }
 
-func FindPacket(name string) (packet, error) {
+func FindPacket(name string) (Packet, error) {
 	if len(packets) == 0 {
 		Load()
 	}
@@ -59,6 +48,6 @@ func FindPacket(name string) (packet, error) {
 		}
 	}
 
-	return packet{}, fmt.Errorf("Unable to find packet %v", name)
+	return Packet{}, fmt.Errorf("Unable to find packet %v", name)
 
 }

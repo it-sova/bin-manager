@@ -1,10 +1,13 @@
 package remote
 
-import "fmt"
+import (
+	"fmt"
+	"net/url"
+)
 
 type Remote interface {
 	GetName() string
-	ListPacketVersions(string) ([]string, error)
+	ListPacketVersions(url.URL) ([]string, error)
 }
 
 func RemoteList() []Remote {

@@ -2,9 +2,14 @@ package remote
 
 import (
 	"context"
+	"fmt"
+	"net/url"
+	"strings"
 
-	"github.com/google/go-github/v42/github"
+	"github.com/google/go-github/github"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/it-sova/bin-manager/helpers"
 )
 
 type githubRemote struct {
@@ -17,12 +22,19 @@ func NewGithubRemote() Remote {
 	}
 }
 
-func (r githubRemote) ListPacketVersions(string) ([]string, error) {
-	client := github.NewClient(nil)
+func (r githubRemote) ListPacketVersions(packetUrl url.URL) ([]string, error) {
+
+	var result []string
+	//TODO: Regexp?
+	repoDetails := helpers.RemoveEmptyElementsFromStringSlice(strings.Split(packetUrl.Path, "/"))
+
+	if len(repoDetails) != 2 {
+		return result, fmt.Errorf("Failed to get user and repo from packet URL %#v", repoDetails)
+	}
 
 	ctx := context.Background()
-
-	releases, _, err := client.Repositories.ListReleases(ctx, "stedolan", "jq", &github.ListOptions{})
+	client := github.NewClient(nil)
+	releases, _, err := client.Repositories.ListReleases(ctx, repoDetails[0], repoDetails[1], &github.ListOptions{})
 	if err != nil {
 		log.Error(err)
 	}
@@ -31,7 +43,7 @@ func (r githubRemote) ListPacketVersions(string) ([]string, error) {
 		log.Info(*release.TarballURL)
 
 	}
-	return []string{}, nil
+	return result, nil
 }
 
 func (r githubRemote) GetName() string {
