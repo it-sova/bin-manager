@@ -9,6 +9,7 @@ import (
 
 var packets []Packet
 
+// Load loads all packets from all repos into packets slice
 func Load() {
 	repos := repo.RepoList()
 	for _, repo := range repos {
@@ -33,10 +34,12 @@ func Load() {
 	}
 }
 
+// ListAll lists all loaded packets
 func ListAll() {
 	log.Printf("%+v", packets)
 }
 
+// FindPacket finds packet in loaded list by its name
 func FindPacket(name string) (Packet, error) {
 	if len(packets) == 0 {
 		Load()

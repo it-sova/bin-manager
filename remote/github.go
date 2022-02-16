@@ -16,17 +16,17 @@ type githubRemote struct {
 	name string
 }
 
+// NewGithubRemote creates new github remote
 func NewGithubRemote() Remote {
 	return githubRemote{
 		name: "github",
 	}
 }
 
-func (r githubRemote) ListPacketVersions(packetUrl url.URL) ([]string, error) {
-
+func (r githubRemote) ListPacketVersions(packetURL *url.URL) ([]string, error) {
 	var result []string
 	//TODO: Regexp?
-	repoDetails := helpers.RemoveEmptyElementsFromStringSlice(strings.Split(packetUrl.Path, "/"))
+	repoDetails := helpers.RemoveEmptyElementsFromStringSlice(strings.Split(packetURL.Path, "/"))
 
 	if len(repoDetails) != 2 {
 		return result, fmt.Errorf("Failed to get user and repo from packet URL %#v", repoDetails)
@@ -41,6 +41,10 @@ func (r githubRemote) ListPacketVersions(packetUrl url.URL) ([]string, error) {
 	for _, release := range releases {
 		log.Info(*release.TagName)
 		log.Info(*release.TarballURL)
+		for _, asset := range release.Assets {
+			log.Info(*asset.Name)
+			log.Info(*asset.BrowserDownloadURL)
+		}
 
 	}
 	return result, nil

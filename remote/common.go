@@ -5,19 +5,22 @@ import (
 	"net/url"
 )
 
+// Remote interface for remotes implementation
 type Remote interface {
 	GetName() string
-	ListPacketVersions(url.URL) ([]string, error)
+	ListPacketVersions(*url.URL) ([]string, error)
 }
 
-func RemoteList() []Remote {
+// List returns list of all registered remotes
+func List() []Remote {
 	return []Remote{
 		NewGithubRemote(),
 	}
 }
 
+// FindRemote finds remote by its name
 func FindRemote(name string) (Remote, error) {
-	for _, remote := range RemoteList() {
+	for _, remote := range List() {
 		if remote.GetName() == name {
 			return remote, nil
 		}

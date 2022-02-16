@@ -2,8 +2,12 @@ package cmd
 
 import (
 	"os"
+	"path"
 
+	"github.com/it-sova/bin-manager/helpers"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var (
@@ -30,9 +34,36 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initLogger)
+	cobra.OnInitialize(initConfig)
 
 	rootCmd.PersistentFlags().StringVar(&logLevel, "loglevel", "info", "Log level")
 
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
+}
+
+func initConfig() {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		log.Error("Failed to get user home dir, %w", err)
+	}
+
+	configDir := path.Join(home, ".config", "binm")
+
+	if err = helpers.CreateDirIfNotExists(configDir); err != nil {
+		log.Error(err)
+	}
+
+	viper.SetDefault("InstallDir", "/opt/binm/")
+
+	viper.SetConfigName("binm")
+	viper.SetConfigType("yaml")
+	viper.AddConfigPath(configDir)
+	err = viper.ReadInConfig()
+
+	if err != nil {
+		log.Infof("Failed to read config file, using defaults to operate: %v", err.Error())
+	}
+
+	log.Infof("Installation directory: %v", viper.Get("InstallDir"))
 }

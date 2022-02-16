@@ -5,8 +5,9 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// ListVersions parses remote to get available packet versions
 func (p Packet) ListVersions() error {
-	remote, err := remote.FindRemote(p.UrlType)
+	remote, err := remote.FindRemote(p.URLType)
 	if err != nil {
 		return err
 	}
@@ -20,6 +21,7 @@ func (p Packet) ListVersions() error {
 	return nil
 }
 
+// Install installs packet to OS
 func (p Packet) Install() (string, error) {
 	err := p.ListVersions()
 	if err != nil {
