@@ -9,7 +9,7 @@ import (
 // Remote interface for remotes implementation
 type Remote interface {
 	GetName() string
-	ListPacketVersions(*url.URL, []string, *regexp.Regexp) (map[string]string, error)
+	GetPacketAssets(*url.URL, []string, *regexp.Regexp) (map[string]string, error)
 }
 
 // List returns list of all registered remotes

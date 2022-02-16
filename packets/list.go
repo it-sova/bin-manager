@@ -34,6 +34,10 @@ func Load() {
 	}
 }
 
+func GetAll() []Packet {
+	return packets
+}
+
 // ListAll lists all loaded packets
 func ListAll() {
 	for _, packet := range packets {
@@ -54,5 +58,4 @@ func FindPacket(name string) (Packet, error) {
 	}
 
 	return Packet{}, fmt.Errorf("Unable to find packet %v", name)
-
 }

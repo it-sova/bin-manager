@@ -24,7 +24,7 @@ func NewGithubRemote() Remote {
 	}
 }
 
-func (r githubRemote) ListPacketVersions(packetURL *url.URL,
+func (r githubRemote) GetPacketAssets(packetURL *url.URL,
 	filenames []string,
 	versionRegexp *regexp.Regexp) (map[string]string, error) {
 
