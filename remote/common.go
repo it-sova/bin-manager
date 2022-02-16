@@ -3,12 +3,13 @@ package remote
 import (
 	"fmt"
 	"net/url"
+	"regexp"
 )
 
 // Remote interface for remotes implementation
 type Remote interface {
 	GetName() string
-	ListPacketVersions(*url.URL) ([]string, error)
+	ListPacketVersions(*url.URL, []string, *regexp.Regexp) (map[string]string, error)
 }
 
 // List returns list of all registered remotes

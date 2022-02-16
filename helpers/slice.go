@@ -9,3 +9,13 @@ func RemoveEmptyElementsFromStringSlice(input []string) []string {
 	}
 	return res
 }
+
+func StringSliceHasElement(slice []string, element string) bool {
+	for _, value := range slice {
+		if element == value {
+			return true
+		}
+	}
+
+	return false
+}

@@ -23,7 +23,7 @@ func Load() {
 				log.Error("Failed to read packet config for ", packetName)
 			}
 
-			packet, err := NewPacket(packetConfig)
+			packet, err := New(packetConfig)
 			if err != nil {
 				log.Error(fmt.Sprintf("Failed to unmarshal packet config for %v: %v", packetName, err.Error()))
 			}
@@ -36,7 +36,9 @@ func Load() {
 
 // ListAll lists all loaded packets
 func ListAll() {
-	log.Printf("%+v", packets)
+	for _, packet := range packets {
+		log.Infof("%v - %v - (%v)", packet.Name, packet.Description, packet.URL)
+	}
 }
 
 // FindPacket finds packet in loaded list by its name

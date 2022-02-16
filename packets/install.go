@@ -1,6 +1,7 @@
 package packets
 
 import (
+	"github.com/it-sova/bin-manager/helpers"
 	"github.com/it-sova/bin-manager/remote"
 	log "github.com/sirupsen/logrus"
 )
@@ -12,12 +13,19 @@ func (p Packet) ListVersions() error {
 		return err
 	}
 
-	versions, err := remote.ListPacketVersions(p.URL)
+	versions, err := remote.ListPacketVersions(p.URL, p.Filenames, p.VersionRegex)
 	if err != nil {
 		return err
 	}
 
-	log.Infof("Found versions: %+v", versions)
+	log.Debug("Found versions: %#v", versions)
+
+	latestVersion, latestVersionURL, err := helpers.GetLastMapElement(versions)
+	if err != nil {
+		return err
+	}
+
+	log.Infof("Going to install latest %v version %v from %v", p.Name, latestVersion, latestVersionURL)
 	return nil
 }
 

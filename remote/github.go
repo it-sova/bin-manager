@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"regexp"
 	"strings"
 
 	"github.com/google/go-github/github"
@@ -23,8 +24,11 @@ func NewGithubRemote() Remote {
 	}
 }
 
-func (r githubRemote) ListPacketVersions(packetURL *url.URL) ([]string, error) {
-	var result []string
+func (r githubRemote) ListPacketVersions(packetURL *url.URL,
+	filenames []string,
+	versionRegexp *regexp.Regexp) (map[string]string, error) {
+
+	result := map[string]string{}
 	//TODO: Regexp?
 	repoDetails := helpers.RemoveEmptyElementsFromStringSlice(strings.Split(packetURL.Path, "/"))
 
@@ -38,14 +42,28 @@ func (r githubRemote) ListPacketVersions(packetURL *url.URL) ([]string, error) {
 	if err != nil {
 		log.Error(err)
 	}
+
+	// Format packet version, get all releases matching OS and arch
 	for _, release := range releases {
-		log.Info(*release.TagName)
-		log.Info(*release.TarballURL)
-		for _, asset := range release.Assets {
-			log.Info(*asset.Name)
-			log.Info(*asset.BrowserDownloadURL)
+		var version string
+		log.Debugf("Found packet raw version: %v", *release.TagName)
+		matches := versionRegexp.FindStringSubmatch(*release.TagName)
+
+		if len(matches) == 2 {
+			version = matches[1]
+		} else {
+			log.Errorf("Failed to parse packet version %v", *release.TagName)
+			continue
 		}
 
+		log.Debugf("Packet version: %v", version)
+		// Check if asset filename is matching current OS and arch
+		for _, asset := range release.Assets {
+			if helpers.StringSliceHasElement(filenames, *asset.Name) {
+				log.Debugf("Found matching asset: %v - %v", *asset.Name, *asset.BrowserDownloadURL)
+				result[version] = *asset.BrowserDownloadURL
+			}
+		}
 	}
 	return result, nil
 }
