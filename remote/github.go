@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/url"
-	"regexp"
 	"strings"
 
 	"github.com/google/go-github/github"
@@ -14,57 +13,42 @@ import (
 )
 
 type githubRemote struct {
-	name string
+	name   string
+	client *github.Client
 }
 
 // NewGithubRemote creates new GitHub remote
 func NewGithubRemote() Remote {
 	return githubRemote{
-		name: "github",
+		name:   "github",
+		client: github.NewClient(nil),
 	}
 }
 
-func (r githubRemote) GetPacketAssets(packetURL *url.URL,
-	filenames []string,
-	versionRegexp *regexp.Regexp) (map[string]string, error) {
+func (r githubRemote) GetPacketAssets(packetURL *url.URL) (map[string][]string, error) {
 
-	result := map[string]string{}
+	result := map[string][]string{}
 	//TODO: Regexp?
 	repoDetails := helpers.RemoveEmptyElementsFromStringSlice(strings.Split(packetURL.Path, "/"))
 
 	if len(repoDetails) != 2 {
-		return result, fmt.Errorf("Failed to get user and repo from packet URL %#v", repoDetails)
+		return result, fmt.Errorf("failed to get user and repo from packet URL %#v", repoDetails)
 	}
-
-	ctx := context.Background()
-	client := github.NewClient(nil)
-	releases, _, err := client.Repositories.ListReleases(ctx, repoDetails[0], repoDetails[1], &github.ListOptions{})
+	releases, _, err := r.client.Repositories.ListReleases(context.Background(), repoDetails[0], repoDetails[1], &github.ListOptions{})
 	if err != nil {
 		log.Error(err)
 	}
 
-	// Format packet version, get all releases matching OS and arch
 	for _, release := range releases {
-		var version string
-		log.Debugf("Found packet raw version: %v", *release.TagName)
-		matches := versionRegexp.FindStringSubmatch(*release.TagName)
-
-		if len(matches) == 2 {
-			version = matches[1]
-		} else {
-			log.Errorf("Failed to parse packet version %v", *release.TagName)
-			continue
-		}
-
-		log.Debugf("Packet version: %v", version)
-		// Check if asset filename is matching current OS and arch
-		for _, asset := range release.Assets {
-			if helpers.StringSliceHasElement(filenames, *asset.Name) {
-				log.Debugf("Found matching asset: %v - %v", *asset.Name, *asset.BrowserDownloadURL)
-				result[version] = *asset.BrowserDownloadURL
+		// We don't need any versions without assets
+		if len(release.Assets) > 0 {
+			result[*release.TagName] = []string{}
+			for _, asset := range release.Assets {
+				result[*release.TagName] = append(result[*release.TagName], *asset.BrowserDownloadURL)
 			}
 		}
 	}
+
 	return result, nil
 }
 

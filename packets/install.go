@@ -9,21 +9,53 @@ import (
 	"path"
 )
 
+func (p Packet) GetNormalizedReleases(releases map[string][]string) map[string]string {
+	result := map[string]string{}
+	// Format packet version, get all releases matching OS and arch
+	for release, assets := range releases {
+		var version string
+		log.Debugf("Found packet raw version: %v", release)
+		matches := p.VersionRegex.FindStringSubmatch(release)
+
+		if len(matches) == 2 {
+			version = matches[1]
+		} else {
+			log.Errorf("Failed to parse packet version %v", release)
+			continue
+		}
+
+		log.Debugf("Packet version: %v", version)
+		// Check if asset filename is matching current OS and arch
+		for _, url := range assets {
+			assetName := path.Base(url)
+			if helpers.StringSliceHasElement(p.Filenames, assetName) {
+				log.Debugf("Found matching asset: %v - %v", assetName, url)
+				result[version] = url
+			}
+		}
+	}
+
+	return result
+}
+
 // GetPacketVersions return map of packet version and asset URL for current OS and arch
 func (p Packet) GetPacketVersions() (map[string]string, error) {
+	var packetVersions map[string]string
 	r, err := remote.FindRemote(p.URLType)
 	if err != nil {
 		return map[string]string{}, err
 	}
 
-	versions, err := r.GetPacketAssets(p.URL, p.Filenames, p.VersionRegex)
+	releases, err := r.GetPacketAssets(p.URL)
 	if err != nil {
 		return map[string]string{}, err
 	}
 
-	log.Debug("Found versions: %#v", versions)
+	packetVersions = p.GetNormalizedReleases(releases)
 
-	return versions, nil
+	log.Debug("Found versions: %#v", packetVersions)
+
+	return packetVersions, nil
 }
 
 // ListVersions parses remote to get available packet versions
