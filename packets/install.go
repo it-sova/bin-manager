@@ -16,6 +16,8 @@ func (p *Packet) NormalizeReleases(releases map[string][]string) {
 	for release, assets := range releases {
 		var rawVersion string
 		log.Debugf("Found packet raw version: %v", release)
+		// Regex required to clean version from prefixes\affixes etc
+		// like jq-v1.6 -> 1.6 etc
 		matches := p.VersionRegex.FindStringSubmatch(release)
 
 		if len(matches) == 2 {
@@ -68,30 +70,25 @@ func (p *Packet) FetchVersions() error {
 	return nil
 }
 
-// GetLastVersion returns latest available packet version
-func (p *Packet) GetLastVersion() (string, string, error) {
-	//return helpers.GetLastVersionFromMap(p.Versions)
-	return "", "", nil
-}
-
 // Install installs packet to OS
 func (p *Packet) Install(installPath string) error {
-	//TODO: If installVersion not passed....
+
 	p.FetchVersions()
-	latestVersion := p.Versions[0]
+	//TODO: If installVersion passed - use it
+	packetVersion := p.Versions[0]
 	log.Infof(
 		"Going to install latest %v version %v from %v",
 		p.Name,
-		latestVersion.Version,
-		latestVersion.AssetURL,
+		packetVersion.Version,
+		packetVersion.AssetURL,
 	)
 
 	targetPath := path.Join(installPath, p.Name)
 	log.Infof("Installing to %v", targetPath)
 
-	err := helpers.DownloadFile(targetPath, latestVersion.AssetURL)
+	err := helpers.DownloadFile(targetPath, packetVersion.AssetURL)
 	if err != nil {
-		return fmt.Errorf("failed to install %v from %v: %v", p.Name, latestVersion.AssetURL, err)
+		return fmt.Errorf("failed to install %v from %v: %v", p.Name, packetVersion.AssetURL, err)
 	}
 
 	log.Debugf("Changing perms on %v", targetPath)
