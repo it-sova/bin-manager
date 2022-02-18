@@ -27,5 +27,5 @@ func FindRemote(name string) (Remote, error) {
 		}
 	}
 
-	return nil, fmt.Errorf("Failed to find %v remote", name)
+	return nil, fmt.Errorf("failed to find %v remote", name)
 }

@@ -2,20 +2,21 @@ package packets
 
 import (
 	"fmt"
-
 	"github.com/it-sova/bin-manager/helpers"
 	"github.com/it-sova/bin-manager/remote"
 	log "github.com/sirupsen/logrus"
+	"os"
+	"path"
 )
 
 // GetPacketVersions return map of packet version and asset URL for current OS and arch
 func (p Packet) GetPacketVersions() (map[string]string, error) {
-	remote, err := remote.FindRemote(p.URLType)
+	r, err := remote.FindRemote(p.URLType)
 	if err != nil {
 		return map[string]string{}, err
 	}
 
-	versions, err := remote.GetPacketAssets(p.URL, p.Filenames, p.VersionRegex)
+	versions, err := r.GetPacketAssets(p.URL, p.Filenames, p.VersionRegex)
 	if err != nil {
 		return map[string]string{}, err
 	}
@@ -48,7 +49,7 @@ func (p Packet) GetLastVersion() (string, string, error) {
 }
 
 // Install installs packet to OS
-func (p Packet) Install() error {
+func (p Packet) Install(installPath string) error {
 	//TODO: If installVersion not passed....
 
 	latestVersion, latestVersionURL, err := p.GetLastVersion()
@@ -57,5 +58,19 @@ func (p Packet) Install() error {
 	}
 	log.Infof("Going to install latest %v version %v from %v", p.Name, latestVersion, latestVersionURL)
 
+	targetPath := path.Join(installPath, p.Name)
+	log.Infof("Installing to %v", targetPath)
+
+	err = helpers.DownloadFile(targetPath, latestVersionURL)
+	if err != nil {
+		log.Errorf("Failed to install %v from %v: %v", p.Name, latestVersionURL, err)
+	}
+
+	log.Debugf("Changing perms on %v", targetPath)
+	// Set file execute permissions
+	err = os.Chmod(targetPath, 0755)
+	if err != nil {
+		log.Errorf("Failed to change file permissions: %v", err)
+	}
 	return nil
 }

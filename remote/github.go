@@ -17,7 +17,7 @@ type githubRemote struct {
 	name string
 }
 
-// NewGithubRemote creates new github remote
+// NewGithubRemote creates new GitHub remote
 func NewGithubRemote() Remote {
 	return githubRemote{
 		name: "github",

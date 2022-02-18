@@ -2,6 +2,10 @@ package cmd
 
 import (
 	"errors"
+	"github.com/it-sova/bin-manager/helpers"
+	"os"
+	"path"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 
@@ -22,6 +26,17 @@ var installCmd = &cobra.Command{
 		return nil
 	},
 	Run: func(cmd *cobra.Command, args []string) {
+		// Check if $PATH includes installPath
+		if !strings.Contains(os.Getenv("PATH"), installPath) {
+			log.Warningf("Install path %v not found in $PATH!", installPath)
+			log.Warningf("Consider extending $PATH: export PATH=\"$PATH:%v\"", installPath)
+		}
+
+		err := helpers.CreateDirIfNotExists(installPath)
+		if err != nil {
+			log.Fatalf("Failed to create %v, %v", installPath, err)
+		}
+
 		packets.Load()
 		packet, err := packets.FindPacket(args[0])
 		if err != nil {
@@ -29,7 +44,10 @@ var installCmd = &cobra.Command{
 		}
 
 		log.Debug("Going to install packet ", packet.Name)
-		packet.Install()
+		err = packet.Install(installPath)
+		if err != nil {
+			log.Fatalf("Failed to install packet: %v", err)
+		}
 
 	},
 }
@@ -37,6 +55,16 @@ var installCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(installCmd)
 
-	installCmd.Flags().StringVarP(&installPath, "path", "p", "/opt/binm/", "Define path for packets installation")
-	//installCmd.Flags().StringP("path", "p", "/opt/binm/", "Define path for packets installation")
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		log.Fatalf("Failed to get user home directory, %v", err)
+	}
+
+	installCmd.Flags().StringVarP(
+		&installPath,
+		"path",
+		"p",
+		path.Join(homeDir, ".binm"),
+		"Define path for packets installation",
+	)
 }
