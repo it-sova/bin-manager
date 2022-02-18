@@ -2,7 +2,6 @@ package packets
 
 import (
 	"fmt"
-
 	"github.com/it-sova/bin-manager/repo"
 	log "github.com/sirupsen/logrus"
 )
@@ -58,4 +57,13 @@ func FindPacket(name string) (Packet, error) {
 	}
 
 	return Packet{}, fmt.Errorf("Unable to find packet %v", name)
+}
+
+// ListVersions parses remote to get available packet versions
+func (p *Packet) ListVersions() {
+	p.FetchVersions()
+	log.Infof("= %v:", p.Name)
+	for _, v := range p.Versions {
+		log.Infof("    %v", v.Version)
+	}
 }

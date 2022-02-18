@@ -1,0 +1,9 @@
+---
+Name: yq
+URL: https://github.com/mikefarah/yq
+URLType: github
+Description: yq
+VersionRegex: ^v([\d{0,10}\.{0,1}]+).*$
+FilenameTemplates:
+  # yq_linux_amd64
+  - "yq_{{ .os }}_{{ .arch }}"

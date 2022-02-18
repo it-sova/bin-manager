@@ -3,13 +3,15 @@ package remote
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"net/url"
+	"os"
 	"strings"
 
 	"github.com/google/go-github/github"
-	log "github.com/sirupsen/logrus"
-
 	"github.com/it-sova/bin-manager/helpers"
+	log "github.com/sirupsen/logrus"
+	"golang.org/x/oauth2"
 )
 
 type githubRemote struct {
@@ -19,9 +21,20 @@ type githubRemote struct {
 
 // NewGithubRemote creates new GitHub remote
 func NewGithubRemote() Remote {
+	var client *http.Client
+	token := os.Getenv("GITHUB_TOKEN")
+
+	if len(token) > 0 {
+		log.Debugf("GitHub API Token found, using token-based auth")
+		client = oauth2.NewClient(
+			context.Background(),
+			oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token}),
+		)
+	}
+
 	return githubRemote{
 		name:   "github",
-		client: github.NewClient(nil),
+		client: github.NewClient(client),
 	}
 }
 
@@ -46,6 +59,8 @@ func (r githubRemote) GetPacketAssets(packetURL *url.URL) (map[string][]string, 
 			for _, asset := range release.Assets {
 				result[*release.TagName] = append(result[*release.TagName], *asset.BrowserDownloadURL)
 			}
+		} else {
+			log.Debugf("Empty release: %v", *release.TagName)
 		}
 	}
 

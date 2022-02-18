@@ -1,7 +1,0 @@
----
-Name: yq
-URL: https://github.com/mikefarah/yq
-URLType: github
-Description: yq packet
-VersionRegex: ""
-FilenameTemplate: ""

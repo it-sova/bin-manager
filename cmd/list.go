@@ -11,7 +11,11 @@ var listCmd = &cobra.Command{
 	Short: "List command",
 	Run: func(cmd *cobra.Command, args []string) {
 		packets.Load()
-		packets.ListAll()
+		packets := packets.GetAll()
+		for _, packet := range packets {
+			packet.ListVersions()
+		}
+
 	},
 }
 

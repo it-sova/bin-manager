@@ -2,6 +2,7 @@ package packets
 
 import (
 	"bytes"
+	"github.com/hashicorp/go-version"
 	"html/template"
 	"net/url"
 	"regexp"
@@ -22,6 +23,11 @@ type rawPacket struct {
 	FilenameTemplates []string `yaml:"FilenameTemplates"`
 }
 
+type Version struct {
+	Version  *version.Version
+	AssetURL string
+}
+
 // Packet represents parsed packet
 type Packet struct {
 	Name         string
@@ -30,6 +36,7 @@ type Packet struct {
 	Description  string
 	VersionRegex *regexp.Regexp
 	Filenames    []string
+	Versions     []Version
 }
 
 // New builds Packet struct from rawPacket
@@ -83,6 +90,7 @@ func New(config []byte) (Packet, error) {
 	packet.URLType = rawPacket.URLType
 	packet.Description = rawPacket.Description
 	packet.VersionRegex = regex
+	packet.Versions = []Version{}
 
 	log.Debug("Packet -> %#v", packet)
 	return packet, nil

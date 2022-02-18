@@ -54,10 +54,12 @@ func initConfig() {
 		log.Error(err)
 	}
 
+	// TODO: Get GitHub token from env or config
 	viper.SetDefault("InstallDir", "/opt/binm/")
 
 	viper.SetConfigName("binm")
 	viper.SetConfigType("yaml")
+
 	viper.AddConfigPath(configDir)
 	err = viper.ReadInConfig()
 

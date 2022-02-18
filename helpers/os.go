@@ -6,6 +6,7 @@ var ArchReference = map[string][]string{
 		"64",
 		"x86_64",
 		"x64",
+		"amd64",
 	},
 	//TODO: Add x86
 	//TODO: Add arm
