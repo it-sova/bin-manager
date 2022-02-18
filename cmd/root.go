@@ -49,13 +49,14 @@ func initConfig() {
 	}
 
 	configDir := path.Join(home, ".config", "binm")
+	installDir := path.Join(home, ".binm")
 
 	if err = helpers.CreateDirIfNotExists(configDir); err != nil {
 		log.Error(err)
 	}
 
 	// TODO: Get GitHub token from env or config
-	viper.SetDefault("InstallDir", "/opt/binm/")
+	viper.SetDefault("InstallDir", installDir)
 
 	viper.SetConfigName("binm")
 	viper.SetConfigType("yaml")
@@ -66,6 +67,4 @@ func initConfig() {
 	if err != nil {
 		log.Infof("Failed to read config file, using defaults to operate: %v", err.Error())
 	}
-
-	log.Infof("Installation directory: %v", viper.Get("InstallDir"))
 }

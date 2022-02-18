@@ -39,7 +39,6 @@ func NewGithubRemote() Remote {
 }
 
 func (r githubRemote) GetPacketAssets(packetURL *url.URL) (map[string][]string, error) {
-
 	result := map[string][]string{}
 	//TODO: Regexp?
 	repoDetails := helpers.RemoveEmptyElementsFromStringSlice(strings.Split(packetURL.Path, "/"))
