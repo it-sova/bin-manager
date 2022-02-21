@@ -18,6 +18,7 @@ import (
 )
 
 var installPath string
+var installVersion string
 
 // installCmd represents the list command
 var installCmd = &cobra.Command{
@@ -34,11 +35,11 @@ var installCmd = &cobra.Command{
 		if len(installPath) == 0 {
 			log.Debug("Install path not defined via CLI, use path from config or default")
 			installPath = viper.Get("InstallDir").(string)
-		}
 
+		}
 		home, err := os.UserHomeDir()
 		if err != nil {
-			log.Error("Failed to get user home dir, %w", err)
+			log.Fatalf("Failed to get user home dir, %w", err)
 		}
 
 		// Replace ~/... -> /home/user/...
@@ -67,20 +68,32 @@ var installCmd = &cobra.Command{
 			fmt.Errorf("failed to get state, %v", err)
 		}
 
-		if installedPacket, ok := binState.FindPacket(packet.Name); ok {
+		if installVersion != "" {
+			if _, ok := packet.FindVersion(installVersion); !ok {
+				log.Fatalf("Failed to find version %v for packet %v", installVersion, packet.Name)
+			}
+		} else {
+			latestVersion, err := packet.LatestVersion()
+			if err != nil {
+				log.Fatalf("Failed to get latest packet version for packet %v, %v", packet.Name, err)
+			}
+			installVersion = latestVersion.Version.String()
+		}
+
+		if installedPacket, ok := binState.FindInstalledPacket(packet.Name, installVersion); ok {
 			log.Infof("Packet %v %v already installed", installedPacket.Name, installedPacket.Version)
 			os.Exit(0)
 		}
 
 		log.Debug("Going to install packet ", packet.Name)
-		err = packet.Install(installPath, "")
+		err = packet.Install(installPath, installVersion)
 		if err != nil {
 			log.Fatalf("Failed to install packet: %v", err)
 		}
 
 		err = binState.Append(state.InstalledPacket{
 			Name:      packet.Name,
-			Version:   packet.Versions[0].Version.String(),
+			Version:   installVersion,
 			Path:      path.Join(installPath, packet.Name),
 			Installed: time.Now().String(),
 		})
@@ -101,5 +114,12 @@ func init() {
 		"p",
 		"",
 		"Define path for packets installation",
+	)
+	installCmd.Flags().StringVarP(
+		&installVersion,
+		"version",
+		"v",
+		"",
+		"Packet version to install",
 	)
 }

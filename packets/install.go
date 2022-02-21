@@ -53,6 +53,11 @@ func (p *Packet) NormalizeReleases(releases map[string][]string) {
 }
 
 func (p *Packet) FetchVersions() error {
+	// To not fetch versions more than 1 time
+	if len(p.Versions) > 0 {
+		return nil
+	}
+
 	r, err := remote.FindRemote(p.URLType)
 	if err != nil {
 		return err
@@ -69,7 +74,20 @@ func (p *Packet) FetchVersions() error {
 	return nil
 }
 
+func (p *Packet) FindVersion(version string) (Version, bool) {
+	p.FetchVersions()
+
+	for _, packetVersion := range p.Versions {
+		if packetVersion.Version.String() == version {
+			return packetVersion, true
+		}
+	}
+
+	return Version{}, false
+}
+
 func (p *Packet) LatestVersion() (Version, error) {
+	p.FetchVersions()
 	if len(p.Versions) > 0 {
 		return p.Versions[0], nil
 	}
@@ -79,22 +97,11 @@ func (p *Packet) LatestVersion() (Version, error) {
 
 // Install installs packet to OS
 func (p *Packet) Install(installPath, version string) error {
-
-	var installVersion Version
 	p.FetchVersions()
-	if version != "" {
-		// TODO: Find version, use it
-	} else {
-		packetVersion, err := p.LatestVersion()
-		if err != nil {
-			return err
-		}
-
-		installVersion = packetVersion
-	}
+	installVersion, _ := p.FindVersion(version)
 
 	log.Infof(
-		"Going to install latest %v version %v from %v",
+		"Going to install %v %v from %v",
 		p.Name,
 		installVersion.Version,
 		installVersion.AssetURL,

@@ -28,7 +28,7 @@ func Get() (State, error) {
 	}
 
 	if _, err := os.Stat(stateLocation); err != nil {
-		log.Debugf("State doesnt exists at %v, let's create empty one", stateLocation)
+		log.Infof("Creating empty state at %v", stateLocation)
 		err := CreateEmptyState()
 		if err != nil {
 			return State{}, fmt.Errorf("failed to create new state, %v", err)
@@ -86,6 +86,18 @@ func (s *State) Append(packet InstalledPacket) error {
 	return err
 }
 
+func (s *State) Remove(packetName string) error {
+	for index, packet := range s.InstalledPackets {
+		if packet.Name == packetName {
+			s.InstalledPackets = append(s.InstalledPackets[:index], s.InstalledPackets[index+1:]...)
+		}
+	}
+
+	log.Debugf("State - %#v", s.InstalledPackets)
+	err := s.Save()
+	return err
+}
+
 func (s *State) Save() error {
 	data, err := yaml.Marshal(s)
 	if err != nil {
@@ -101,13 +113,18 @@ func (s *State) Save() error {
 
 }
 
-func (s *State) FindPacket(name string) (InstalledPacket, bool) {
+func (s *State) FindInstalledPacket(name, version string) (InstalledPacket, bool) {
 	for _, packet := range s.InstalledPackets {
-		if packet.Name == name {
-			return packet, true
+		if version != "" {
+			if packet.Name == name && packet.Version == version {
+				return packet, true
+			}
+		} else {
+			if packet.Name == name {
+				return packet, true
+			}
 		}
 	}
 
 	return InstalledPacket{}, false
-
 }
