@@ -11,6 +11,9 @@ import (
 	"sort"
 )
 
+// NormalizeReleases parses general version from raw one got from remote
+// Filters assets to keep only matching current OS and arch
+// Sorts resulting slice and applies it to structure
 func (p *Packet) NormalizeReleases(releases map[string][]string) {
 	// Format packet version, get all releases matching OS and arch
 	for release, assets := range releases {
@@ -52,6 +55,7 @@ func (p *Packet) NormalizeReleases(releases map[string][]string) {
 
 }
 
+// FetchVersions fetches versions from remote
 func (p *Packet) FetchVersions() error {
 	// To not fetch versions more than 1 time
 	if len(p.Versions) > 0 {
@@ -74,6 +78,7 @@ func (p *Packet) FetchVersions() error {
 	return nil
 }
 
+// FindVersion searches for given version of packet
 func (p *Packet) FindVersion(version string) (Version, bool) {
 	p.FetchVersions()
 
@@ -86,6 +91,7 @@ func (p *Packet) FindVersion(version string) (Version, bool) {
 	return Version{}, false
 }
 
+// LatestVersion returns latest packet version if possible
 func (p *Packet) LatestVersion() (Version, error) {
 	p.FetchVersions()
 	if len(p.Versions) > 0 {
@@ -95,7 +101,7 @@ func (p *Packet) LatestVersion() (Version, error) {
 	return Version{}, fmt.Errorf("version list has 0 elements")
 }
 
-// Install installs packet to OS
+// Install installs packet
 func (p *Packet) Install(installPath, version string) error {
 	p.FetchVersions()
 	installVersion, _ := p.FindVersion(version)

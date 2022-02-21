@@ -5,7 +5,7 @@ import (
 	"net/url"
 )
 
-// Remote interface for remotes implementation
+// Remote represents generic remote interfaces
 type Remote interface {
 	GetName() string
 	GetPacketAssets(*url.URL) (map[string][]string, error)

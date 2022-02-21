@@ -9,6 +9,7 @@ import (
 	"os"
 )
 
+// InstalledPacket represents installed packet as part of state
 type InstalledPacket struct {
 	Name      string `yaml:"name"`
 	Version   string `yaml:"version"`
@@ -16,11 +17,13 @@ type InstalledPacket struct {
 	Installed string `yaml:"installed"`
 }
 
+// State represent state ( list of installed packets )
 type State struct {
 	InstalledPackets []InstalledPacket `yaml:"installed_packets"`
 	location         string
 }
 
+// Get return state. If state file was not found - it will be created with empty state
 func Get() (State, error) {
 	stateLocation := viper.Get("StateLocation").(string)
 	if stateLocation == "" {
@@ -29,7 +32,7 @@ func Get() (State, error) {
 
 	if _, err := os.Stat(stateLocation); err != nil {
 		log.Infof("Creating empty state at %v", stateLocation)
-		err := CreateEmptyState()
+		err := createEmptyState()
 		if err != nil {
 			return State{}, fmt.Errorf("failed to create new state, %v", err)
 		}
@@ -57,7 +60,8 @@ func Get() (State, error) {
 
 }
 
-func CreateEmptyState() error {
+// createEmptyState creates empty state file
+func createEmptyState() error {
 	stateLocation := viper.Get("StateLocation").(string)
 	if stateLocation == "" {
 		return fmt.Errorf("failed to get state location")
@@ -80,12 +84,14 @@ func CreateEmptyState() error {
 	return nil
 }
 
+// Append appends new InstalledPacket into state
 func (s *State) Append(packet InstalledPacket) error {
 	s.InstalledPackets = append(s.InstalledPackets, packet)
 	err := s.Save()
 	return err
 }
 
+// Remove removes installed packet from state by packet name
 func (s *State) Remove(packetName string) error {
 	for index, packet := range s.InstalledPackets {
 		if packet.Name == packetName {
@@ -98,6 +104,7 @@ func (s *State) Remove(packetName string) error {
 	return err
 }
 
+// Save saves state to file
 func (s *State) Save() error {
 	data, err := yaml.Marshal(s)
 	if err != nil {
@@ -113,6 +120,7 @@ func (s *State) Save() error {
 
 }
 
+// FindInstalledPacket searches for installed packet in state. It's possible to search by name or name and version
 func (s *State) FindInstalledPacket(name, version string) (InstalledPacket, bool) {
 	for _, packet := range s.InstalledPackets {
 		if version != "" {

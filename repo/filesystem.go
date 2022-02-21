@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 )
 
+// fileSystemRepo represents repository
 type fileSystemRepo struct {
 	name string
 	path string
@@ -38,6 +39,7 @@ func NewFileSystemRepo(p string) (fileSystemRepo, error) {
 	}, nil
 }
 
+// ScanPackets returns list of all packets in repository
 func (r fileSystemRepo) ScanPackets() []string {
 	var result []string
 	files, err := ioutil.ReadDir(r.path)
@@ -54,6 +56,7 @@ func (r fileSystemRepo) ScanPackets() []string {
 	return result
 }
 
+// GetPacketConfig reads packet config from file and returns it
 func (r fileSystemRepo) GetPacketConfig(packet string) ([]byte, error) {
 	config, err := ioutil.ReadFile(path.Join(r.path, packet))
 	if err != nil {
@@ -63,10 +66,12 @@ func (r fileSystemRepo) GetPacketConfig(packet string) ([]byte, error) {
 	return config, nil
 }
 
+// GetName getter for repo name
 func (r fileSystemRepo) GetName() string {
 	return r.name
 }
 
+// GetPath getter for repo path
 func (r fileSystemRepo) GetPath() string {
 	return r.path
 }

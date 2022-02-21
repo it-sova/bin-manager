@@ -10,7 +10,7 @@ var packets []Packet
 
 // Load loads all packets from all repos into packets slice
 func Load() {
-	repos := repo.RepoList()
+	repos := repo.List()
 	for _, repo := range repos {
 		log.Info(fmt.Sprintf("Loaded repo %v (%v)", repo.GetName(), repo.GetPath()))
 

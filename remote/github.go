@@ -14,6 +14,7 @@ import (
 	"golang.org/x/oauth2"
 )
 
+// githubRemote represents struct for GitHub remote
 type githubRemote struct {
 	name   string
 	client *github.Client
@@ -38,6 +39,11 @@ func NewGithubRemote() Remote {
 	}
 }
 
+// GetPacketAssets Scans passed URL for packet assets and returns result as map
+// version:
+// 	- asset_url1
+//  - asset_url2
+// ...
 func (r githubRemote) GetPacketAssets(packetURL *url.URL) (map[string][]string, error) {
 	result := map[string][]string{}
 	//TODO: Regexp?
@@ -66,6 +72,7 @@ func (r githubRemote) GetPacketAssets(packetURL *url.URL) (map[string][]string, 
 	return result, nil
 }
 
+// GetName getter for remote name
 func (r githubRemote) GetName() string {
 	return r.name
 }

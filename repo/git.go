@@ -1,5 +1,7 @@
 package repo
 
+// TODO: To be implemented, just a placeholder atm
+
 type gitRepo struct {
 	name string
 	path string

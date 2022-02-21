@@ -23,6 +23,7 @@ type rawPacket struct {
 	FilenameTemplates []string `yaml:"FilenameTemplates"`
 }
 
+// Version represents packet version
 type Version struct {
 	Version  *version.Version
 	AssetURL string
