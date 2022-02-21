@@ -1,13 +1,8 @@
 package cmd
 
 import (
-	"os"
-	"path"
-
-	"github.com/it-sova/bin-manager/helpers"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
+	"os"
 )
 
 var (
@@ -40,31 +35,4 @@ func init() {
 
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
-}
-
-func initConfig() {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		log.Error("Failed to get user home dir, %w", err)
-	}
-
-	configDir := path.Join(home, ".config", "binm")
-	installDir := path.Join(home, ".binm")
-
-	if err = helpers.CreateDirIfNotExists(configDir); err != nil {
-		log.Error(err)
-	}
-
-	// TODO: Get GitHub token from env or config
-	viper.SetDefault("InstallDir", installDir)
-
-	viper.SetConfigName("binm")
-	viper.SetConfigType("yaml")
-
-	viper.AddConfigPath(configDir)
-	err = viper.ReadInConfig()
-
-	if err != nil {
-		log.Infof("Failed to read config file, using defaults to operate: %v", err.Error())
-	}
 }

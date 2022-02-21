@@ -69,25 +69,43 @@ func (p *Packet) FetchVersions() error {
 	return nil
 }
 
-// Install installs packet to OS
-func (p *Packet) Install(installPath string) error {
+func (p *Packet) LatestVersion() (Version, error) {
+	if len(p.Versions) > 0 {
+		return p.Versions[0], nil
+	}
 
+	return Version{}, fmt.Errorf("version list has 0 elements")
+}
+
+// Install installs packet to OS
+func (p *Packet) Install(installPath, version string) error {
+
+	var installVersion Version
 	p.FetchVersions()
-	//TODO: If installVersion passed - use it
-	packetVersion := p.Versions[0]
+	if version != "" {
+		// TODO: Find version, use it
+	} else {
+		packetVersion, err := p.LatestVersion()
+		if err != nil {
+			return err
+		}
+
+		installVersion = packetVersion
+	}
+
 	log.Infof(
 		"Going to install latest %v version %v from %v",
 		p.Name,
-		packetVersion.Version,
-		packetVersion.AssetURL,
+		installVersion.Version,
+		installVersion.AssetURL,
 	)
 
 	targetPath := path.Join(installPath, p.Name)
 	log.Infof("Installing to %v", targetPath)
 
-	err := helpers.DownloadFile(targetPath, packetVersion.AssetURL)
+	err := helpers.DownloadFile(targetPath, installVersion.AssetURL)
 	if err != nil {
-		return fmt.Errorf("failed to install %v from %v: %v", p.Name, packetVersion.AssetURL, err)
+		return fmt.Errorf("failed to install %v from %v: %v", p.Name, installVersion.AssetURL, err)
 	}
 
 	log.Debugf("Changing perms on %v", targetPath)

@@ -3,9 +3,9 @@ package remote
 import (
 	"context"
 	"fmt"
+	"github.com/spf13/viper"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 
 	"github.com/google/go-github/github"
@@ -22,13 +22,13 @@ type githubRemote struct {
 // NewGithubRemote creates new GitHub remote
 func NewGithubRemote() Remote {
 	var client *http.Client
-	token := os.Getenv("GITHUB_TOKEN")
+	token := viper.Get("tokens.github")
 
-	if len(token) > 0 {
+	if token != nil {
 		log.Debugf("GitHub API Token found, using token-based auth")
 		client = oauth2.NewClient(
 			context.Background(),
-			oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token}),
+			oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token.(string)}),
 		)
 	}
 
