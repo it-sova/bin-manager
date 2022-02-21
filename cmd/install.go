@@ -2,14 +2,14 @@ package cmd
 
 import (
 	"errors"
-	"fmt"
-	"github.com/it-sova/bin-manager/helpers"
-	"github.com/it-sova/bin-manager/state"
-	"github.com/spf13/viper"
 	"os"
 	"path"
 	"strings"
 	"time"
+
+	"github.com/it-sova/bin-manager/helpers"
+	"github.com/it-sova/bin-manager/state"
+	"github.com/spf13/viper"
 
 	log "github.com/sirupsen/logrus"
 
@@ -65,7 +65,7 @@ var installCmd = &cobra.Command{
 
 		binState, err := state.Get()
 		if err != nil {
-			fmt.Errorf("failed to get state, %v", err)
+			log.Fatalf("failed to get state, %v", err)
 		}
 
 		if installVersion != "" {

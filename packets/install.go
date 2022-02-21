@@ -73,7 +73,6 @@ func (p *Packet) FetchVersions() error {
 	}
 
 	p.NormalizeReleases(releases)
-	log.Debug("Found versions: %#v", p.Versions)
 
 	return nil
 }

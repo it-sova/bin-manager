@@ -2,10 +2,10 @@ package cmd
 
 import (
 	"errors"
-	"fmt"
+	"os"
+
 	"github.com/it-sova/bin-manager/state"
 	log "github.com/sirupsen/logrus"
-	"os"
 
 	"github.com/it-sova/bin-manager/packets"
 	"github.com/spf13/cobra"
@@ -34,7 +34,7 @@ var removeCmd = &cobra.Command{
 
 		binState, err := state.Get()
 		if err != nil {
-			fmt.Errorf("failed to get state, %v", err)
+			log.Fatalf("failed to get state, %v", err)
 		}
 
 		installedPacket, ok := binState.FindInstalledPacket(packet.Name, "")

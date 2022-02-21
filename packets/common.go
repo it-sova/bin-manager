@@ -2,14 +2,14 @@ package packets
 
 import (
 	"bytes"
-	"github.com/hashicorp/go-version"
 	"html/template"
 	"net/url"
 	"regexp"
 	"runtime"
 
+	"github.com/hashicorp/go-version"
+
 	"github.com/it-sova/bin-manager/helpers"
-	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
 )
 
@@ -49,8 +49,6 @@ func New(config []byte) (Packet, error) {
 	if err != nil {
 		return packet, err
 	}
-
-	log.Debug("RawPacket -> %#v", rawPacket)
 
 	url, err := url.Parse(rawPacket.URL)
 	if err != nil {
@@ -93,6 +91,5 @@ func New(config []byte) (Packet, error) {
 	packet.VersionRegex = regex
 	packet.Versions = []Version{}
 
-	log.Debug("Packet -> %#v", packet)
 	return packet, nil
 }
