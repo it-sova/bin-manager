@@ -41,55 +41,59 @@ type Packet struct {
 }
 
 // New builds Packet struct from rawPacket
-func New(config []byte) (Packet, error) {
-	rawPacket := rawPacket{}
-	packet := Packet{}
+func New(config []byte) (newPacket Packet, err error) {
+	var (
+		parsedPacket rawPacket
+		filenames    []string
+	)
+
 	// TODO: Custom Unmarshaller for packet?
-	err := yaml.Unmarshal(config, &rawPacket)
+	err = yaml.Unmarshal(config, &parsedPacket)
 	if err != nil {
-		return packet, err
+		return newPacket, err
 	}
 
-	url, err := url.Parse(rawPacket.URL)
+	packetURL, err := url.Parse(parsedPacket.URL)
 	if err != nil {
-		return packet, err
+		return newPacket, err
 	}
 
-	regex, err := regexp.Compile(rawPacket.VersionRegex)
+	regex, err := regexp.Compile(parsedPacket.VersionRegex)
 	if err != nil {
-		return packet, err
+		return newPacket, err
 	}
 
-	var filenames []string
-	for _, possibleFilename := range rawPacket.FilenameTemplates {
-		template, err := template.New("filename").Parse(possibleFilename)
+	for _, possibleFilename := range parsedPacket.FilenameTemplates {
+		var assetTemplate *template.Template
+		assetTemplate, err = template.New("filename").Parse(possibleFilename)
+
 		if err != nil {
-			return packet, err
+			return newPacket, err
 		}
 
 		// Fill with all possible arch abbrs
 		for _, arch := range helpers.ArchReference[runtime.GOARCH] {
 			buf := &bytes.Buffer{}
-			err = template.Execute(buf, map[string]string{
+			err = assetTemplate.Execute(buf, map[string]string{
 				"os":   runtime.GOOS,
 				"arch": arch,
 			})
 
 			if err != nil {
-				return packet, err
+				return newPacket, err
 			}
+
 			filenames = append(filenames, buf.String())
 		}
-
 	}
 
-	packet.Filenames = filenames
-	packet.URL = url
-	packet.Name = rawPacket.Name
-	packet.URLType = rawPacket.URLType
-	packet.Description = rawPacket.Description
-	packet.VersionRegex = regex
-	packet.Versions = []Version{}
+	newPacket.Filenames = filenames
+	newPacket.URL = packetURL
+	newPacket.Name = parsedPacket.Name
+	newPacket.URLType = parsedPacket.URLType
+	newPacket.Description = parsedPacket.Description
+	newPacket.VersionRegex = regex
+	newPacket.Versions = []Version{}
 
-	return packet, nil
+	return newPacket, nil
 }

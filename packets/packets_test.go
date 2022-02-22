@@ -18,6 +18,7 @@ type packetSuite struct {
 
 func (s *packetSuite) SetupTest() {
 	var err error
+
 	s.packetConfig = rawPacket{
 		Name:         "jq",
 		URL:          "https://github.com/stedolan/jq",
@@ -116,7 +117,6 @@ func (s *packetSuite) TestValidTemplatesShouldBeParsed() {
 		_, err := New(out)
 		s.Assert().NoError(err)
 	})
-
 }
 
 func (s *packetSuite) TestNormalizeReleasesNotPanics() {
@@ -136,7 +136,6 @@ func (s *packetSuite) TestNormalizeReleasesNotPanics() {
 
 	s.NotPanics(func() {
 		s.packet.NormalizeReleases(releases)
-
 	})
 
 	for _, packet := range s.packet.Versions {
@@ -176,9 +175,11 @@ func (s *packetSuite) TestNormalizeReleasesWrongVersion() {
 
 func (s *packetSuite) TestFetchVersions() {
 	s.NotPanics(func() {
-		s.packet.FetchVersions()
+		err := s.packet.FetchVersions()
+		s.Assert().NoError(err)
 		s.Assert().NotEmpty(s.packet.Versions)
-		s.packet.FetchVersions()
+		err = s.packet.FetchVersions()
+		s.Assert().NoError(err)
 	})
 }
 
@@ -187,7 +188,9 @@ func (s *packetSuite) TestFetchVersionsWrongRemote() {
 		s.packetConfig.URLType = "wrongURLType"
 		out, _ := yaml.Marshal(s.packetConfig)
 		packet, _ := New(out)
-		packet.FetchVersions()
+		err := packet.FetchVersions()
+		s.Assert().Error(err)
+		s.Assert().Contains(err.Error(), "failed to find wrongURLType remote")
 	})
 }
 
@@ -196,13 +199,16 @@ func (s *packetSuite) TestFetchVersionsWrongRemoteURL() {
 		s.packetConfig.URL = "https://example.com"
 		out, _ := yaml.Marshal(s.packetConfig)
 		packet, _ := New(out)
-		packet.FetchVersions()
+		err := packet.FetchVersions()
+		s.Assert().Error(err)
+		s.Assert().Contains(err.Error(), "failed to get user and repo from packet UR")
 	})
 }
 
 func (s *packetSuite) TestFindVersion() {
 	s.NotPanics(func() {
-		s.packet.FetchVersions()
+		err := s.packet.FetchVersions()
+		s.Assert().NoError(err)
 		latestVersion := s.packet.Versions[0].Version.String()
 		version, ok := s.packet.FindVersion(latestVersion)
 		s.Assert().Equal(true, ok)
@@ -212,7 +218,8 @@ func (s *packetSuite) TestFindVersion() {
 
 func (s *packetSuite) TestFindVersionFails() {
 	s.NotPanics(func() {
-		s.packet.FetchVersions()
+		err := s.packet.FetchVersions()
+		s.Assert().NoError(err)
 		latestVersion := "WrongVersion"
 		version, ok := s.packet.FindVersion(latestVersion)
 		s.Assert().Equal(false, ok)
@@ -234,6 +241,7 @@ func (s *packetSuite) TestEmptyVersionListLatestVersion() {
 		s.packetConfig.URL = "http://github.com/t/xxxg"
 		out, _ := yaml.Marshal(s.packetConfig)
 		packet, err := New(out)
+		s.Assert().NoError(err)
 		_, err = packet.LatestVersion()
 		s.Assert().Error(err)
 		s.Assert().Contains(err.Error(), "version list has 0 elements")

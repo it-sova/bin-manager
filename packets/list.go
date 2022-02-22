@@ -2,6 +2,7 @@ package packets
 
 import (
 	"fmt"
+
 	"github.com/it-sova/bin-manager/repo"
 	log "github.com/sirupsen/logrus"
 )
