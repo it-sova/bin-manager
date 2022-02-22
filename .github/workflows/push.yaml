@@ -41,4 +41,4 @@ jobs:
           files: coverage.out
           fail_ci_if_error: true
           flags: unittests
-          verbose: true
+          verbose: false
