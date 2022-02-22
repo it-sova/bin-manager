@@ -11,3 +11,6 @@ var ArchReference = map[string][]string{
 	//TODO: Add x86
 	//TODO: Add arm
 }
+
+const FileChmod = 0o644
+const FileExecutableChmod = 0o755

@@ -57,14 +57,18 @@ func FindPacket(name string) (Packet, error) {
 		}
 	}
 
-	return Packet{}, fmt.Errorf("Unable to find packet %v", name)
+	return Packet{}, fmt.Errorf("unable to find packet %v", name)
 }
 
 // ListVersions parses remote to get available packet versions
 func (p *Packet) ListVersions() {
-	p.FetchVersions()
-	log.Infof("= %v:", p.Name)
-	for _, v := range p.Versions {
-		log.Infof("    %v", v.Version)
+	if err := p.FetchVersions(); err == nil {
+		log.Infof("= %v:", p.Name)
+
+		for _, v := range p.Versions {
+			log.Infof("    %v", v.Version)
+		}
+	} else {
+		log.Errorf("Failed to fetch packet versions, %v", err.Error())
 	}
 }

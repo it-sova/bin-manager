@@ -1,13 +1,13 @@
 package helpers
 
 // RemoveEmptyElementsFromStringSlice removes empty elements from slice
-func RemoveEmptyElementsFromStringSlice(input []string) []string {
-	var res []string
+func RemoveEmptyElementsFromStringSlice(input []string) (res []string) {
 	for _, element := range input {
 		if element != "" {
 			res = append(res, element)
 		}
 	}
+
 	return res
 }
 

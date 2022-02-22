@@ -16,7 +16,7 @@ var removeCmd = &cobra.Command{
 	Short: "remove command",
 	Args: func(cmd *cobra.Command, args []string) error {
 		if len(args) != 1 {
-			return errors.New("Single packet name required")
+			return errors.New("single packet name required")
 		}
 		return nil
 	},

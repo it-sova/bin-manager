@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"errors"
+	"fmt"
 	"os"
 	"path"
 	"strings"
@@ -17,8 +17,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var installPath string
-var installVersion string
+var (
+	installPath    string
+	installVersion string
+)
 
 // installCmd represents the list command
 var installCmd = &cobra.Command{
@@ -26,20 +28,28 @@ var installCmd = &cobra.Command{
 	Short: "install command",
 	Args: func(cmd *cobra.Command, args []string) error {
 		if len(args) != 1 {
-			return errors.New("Single packet name required")
+			return fmt.Errorf("single packet name required")
 		}
 		return nil
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 
-		if len(installPath) == 0 {
+		var (
+			err error
+			ok  bool
+		)
+
+		if installPath == "" {
 			log.Debug("Install path not defined via CLI, use path from config or default")
-			installPath = viper.Get("InstallDir").(string)
+			installPath, ok = viper.Get("InstallDir").(string)
+			if !ok {
+				log.Fatalf("Failed to get install directory")
+			}
 
 		}
 		home, err := os.UserHomeDir()
 		if err != nil {
-			log.Fatalf("Failed to get user home dir, %w", err)
+			log.Fatalf("Failed to get user home dir, %v", err.Error())
 		}
 
 		// Replace ~/... -> /home/user/...
@@ -73,7 +83,8 @@ var installCmd = &cobra.Command{
 				log.Fatalf("Failed to find version %v for packet %v", installVersion, packet.Name)
 			}
 		} else {
-			latestVersion, err := packet.LatestVersion()
+			var latestVersion packets.Version
+			latestVersion, err = packet.LatestVersion()
 			if err != nil {
 				log.Fatalf("Failed to get latest packet version for packet %v, %v", packet.Name, err)
 			}

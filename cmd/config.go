@@ -1,11 +1,12 @@
 package cmd
 
 import (
+	"os"
+	"path"
+
 	"github.com/it-sova/bin-manager/helpers"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"os"
-	"path"
 )
 
 func initConfig() {
@@ -35,5 +36,4 @@ func initConfig() {
 	if err != nil {
 		log.Infof("Failed to read config file, using defaults to operate: %v", err.Error())
 	}
-
 }

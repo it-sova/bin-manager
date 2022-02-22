@@ -5,6 +5,8 @@ import (
 	"net/url"
 )
 
+const packetURLSegments = 2
+
 // Remote represents generic remote interfaces
 type Remote interface {
 	GetName() string

@@ -2,11 +2,13 @@ package state
 
 import (
 	"fmt"
+	"io"
+	"os"
+
+	"github.com/it-sova/bin-manager/helpers"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v3"
-	"io/ioutil"
-	"os"
 )
 
 // InstalledPacket represents installed packet as part of state
@@ -25,13 +27,14 @@ type State struct {
 
 // Get return state. If state file was not found - it will be created with empty state
 func Get() (State, error) {
-	stateLocation := viper.Get("StateLocation").(string)
-	if stateLocation == "" {
+	stateLocation, ok := viper.Get("StateLocation").(string)
+	if !ok || stateLocation == "" {
 		return State{}, fmt.Errorf("failed to get state location")
 	}
 
 	if _, err := os.Stat(stateLocation); err != nil {
 		log.Infof("Creating empty state at %v", stateLocation)
+
 		err := createEmptyState()
 		if err != nil {
 			return State{}, fmt.Errorf("failed to create new state, %v", err)
@@ -43,7 +46,8 @@ func Get() (State, error) {
 		return State{}, fmt.Errorf("failed to open state file at %v, %v", stateFile, err)
 	}
 	defer stateFile.Close()
-	data, err := ioutil.ReadAll(stateFile)
+	data, err := io.ReadAll(stateFile)
+
 	if err != nil {
 		return State{}, fmt.Errorf("failed to read state file at %v, %v", stateFile, err)
 	}
@@ -52,18 +56,19 @@ func Get() (State, error) {
 		location: stateLocation,
 	}
 	err = yaml.Unmarshal(data, &state)
+
 	if err != nil {
 		return State{}, fmt.Errorf("failed to unmarshal state file, %v", err)
 	}
 
 	return state, nil
-
 }
 
 // createEmptyState creates empty state file
 func createEmptyState() error {
-	stateLocation := viper.Get("StateLocation").(string)
-	if stateLocation == "" {
+	stateLocation, ok := viper.Get("StateLocation").(string)
+
+	if !ok || stateLocation == "" {
 		return fmt.Errorf("failed to get state location")
 	}
 
@@ -75,7 +80,7 @@ func createEmptyState() error {
 		return fmt.Errorf("failed to marshal empty state")
 	}
 
-	err = ioutil.WriteFile(stateLocation, out, 0644)
+	err = os.WriteFile(stateLocation, out, helpers.FileChmod)
 
 	if err != nil {
 		return fmt.Errorf("failed to save empty state at %v", stateLocation)
@@ -88,6 +93,7 @@ func createEmptyState() error {
 func (s *State) Append(packet InstalledPacket) error {
 	s.InstalledPackets = append(s.InstalledPackets, packet)
 	err := s.Save()
+
 	return err
 }
 
@@ -101,6 +107,7 @@ func (s *State) Remove(packetName string) error {
 
 	log.Debugf("State - %#v", s.InstalledPackets)
 	err := s.Save()
+
 	return err
 }
 
@@ -111,13 +118,12 @@ func (s *State) Save() error {
 		return fmt.Errorf("failed to marshal state, %v", err)
 	}
 
-	err = ioutil.WriteFile(s.location, data, 0644)
+	err = os.WriteFile(s.location, data, helpers.FileChmod)
 	if err != nil {
 		return fmt.Errorf("failed to write state file, %v", err)
 	}
 
 	return nil
-
 }
 
 // FindInstalledPacket searches for installed packet in state. It's possible to search by name or name and version

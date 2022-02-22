@@ -13,6 +13,9 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// All matched string + match group
+const regexMatchCount = 2
+
 // rawPacket represents raw packet as it stores in .yaml manifests
 type rawPacket struct {
 	Name              string   `yaml:"Name"`

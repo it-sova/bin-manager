@@ -1,8 +1,9 @@
 package cmd
 
 import (
-	"github.com/spf13/cobra"
 	"os"
+
+	"github.com/spf13/cobra"
 )
 
 var (
@@ -34,5 +35,4 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&logLevel, "loglevel", "info", "Log level")
 
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-
 }

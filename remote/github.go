@@ -3,10 +3,11 @@ package remote
 import (
 	"context"
 	"fmt"
-	"github.com/spf13/viper"
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/spf13/viper"
 
 	"github.com/google/go-github/github"
 	"github.com/it-sova/bin-manager/helpers"
@@ -23,10 +24,12 @@ type githubRemote struct {
 // NewGithubRemote creates new GitHub remote
 func NewGithubRemote() Remote {
 	var client *http.Client
+
 	token := viper.Get("tokens.github")
 
 	if token != nil {
 		log.Debugf("GitHub API Token found, using token-based auth")
+
 		client = oauth2.NewClient(
 			context.Background(),
 			oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token.(string)}),
@@ -44,14 +47,15 @@ func NewGithubRemote() Remote {
 // 	- asset_url1
 //  - asset_url2
 // ...
-func (r githubRemote) GetPacketAssets(packetURL *url.URL) (map[string][]string, error) {
-	result := map[string][]string{}
+func (r githubRemote) GetPacketAssets(packetURL *url.URL) (result map[string][]string, err error) {
+	result = make(map[string][]string, 0)
 	//TODO: Regexp?
 	repoDetails := helpers.RemoveEmptyElementsFromStringSlice(strings.Split(packetURL.Path, "/"))
 
-	if len(repoDetails) != 2 {
+	if len(repoDetails) != packetURLSegments {
 		return result, fmt.Errorf("failed to get user and repo from packet URL %#v", repoDetails)
 	}
+
 	releases, _, err := r.client.Repositories.ListReleases(context.Background(), repoDetails[0], repoDetails[1], &github.ListOptions{})
 	if err != nil {
 		log.Error(err)
