@@ -2,13 +2,14 @@ package packets
 
 import (
 	"fmt"
+	"os"
+	"path"
+	"sort"
+
 	"github.com/hashicorp/go-version"
 	"github.com/it-sova/bin-manager/helpers"
 	"github.com/it-sova/bin-manager/remote"
 	log "github.com/sirupsen/logrus"
-	"os"
-	"path"
-	"sort"
 )
 
 // NormalizeReleases parses general version from raw one got from remote
@@ -32,6 +33,7 @@ func (p *Packet) NormalizeReleases(releases map[string][]string) {
 		parsedVersion, err := version.NewVersion(rawVersion)
 		if err != nil {
 			log.Errorf("Failed to parse version: %v", err)
+			continue
 		}
 
 		log.Debugf("Packet version: %v", parsedVersion)

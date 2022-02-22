@@ -12,6 +12,7 @@ import (
 type packetSuite struct {
 	suite.Suite
 	packetConfig rawPacket
+	packet       Packet
 	rawConfig    []byte
 }
 
@@ -34,6 +35,8 @@ func (s *packetSuite) SetupTest() {
 	if err != nil {
 		log.Errorf("Failed to setup test suite, %v", err)
 	}
+
+	s.packet, _ = New(s.rawConfig)
 }
 
 func (s *packetSuite) TestConstructorNotPanics() {
@@ -79,6 +82,161 @@ func (s *packetSuite) TestIncorrectFilenameTemplateHandled() {
 		_, err := New(out)
 		s.Assert().Error(err)
 		s.Assert().Contains(err.Error(), "template: filename:1: unexpected")
+	})
+}
+
+func (s *packetSuite) TestValidRegexShouldBeParsed() {
+	validRegexps := []string{
+		`^v([\d{0,10}\.{0,1}]+).*$`,
+		`^v(.+)$`,
+		`^jq-(.+)$`,
+	}
+	for _, regex := range validRegexps {
+		s.Assert().NotPanics(func() {
+			s.packetConfig.VersionRegex = regex
+			out, _ := yaml.Marshal(s.packetConfig)
+			_, err := New(out)
+			s.Assert().NoError(err)
+		})
+	}
+}
+
+func (s *packetSuite) TestValidTemplatesShouldBeParsed() {
+	validTemplates := []string{
+		"yq_{{ .os }}_{{ .arch }}",
+		"k3d-{{ .os }}-{{ .arch }}",
+		"jq-{{ .os }}-{{ .arch }}",
+		"jq-{{ .os }}{{ .arch }}",
+		"jq-{{ .os }}-{{ .arch }}-static",
+	}
+
+	s.Assert().NotPanics(func() {
+		s.packetConfig.FilenameTemplates = validTemplates
+		out, _ := yaml.Marshal(s.packetConfig)
+		_, err := New(out)
+		s.Assert().NoError(err)
+	})
+
+}
+
+func (s *packetSuite) TestNormalizeReleasesNotPanics() {
+	expectedVersions := []string{"1.6.0", "1.5.0"}
+	releases := map[string][]string{
+		"jq-1.5": {
+			"https://github.com/stedolan/jq/releases/download/jq-1.4/jq-linux-x86_64",
+			"https://github.com/stedolan/jq/releases/download/jq-1.5rc2/jq-linux-x86_64",
+			"https://github.com/stedolan/jq/releases/download/jq-1.5rc1/jq-linux-x86_64-static",
+		},
+		"jq-1.6": {
+			"https://github.com/stedolan/jq/releases/download/jq-1.4/jq-linux-x86_64",
+			"https://github.com/stedolan/jq/releases/download/jq-1.5rc2/jq-linux-x86_64",
+			"https://github.com/stedolan/jq/releases/download/jq-1.5rc1/jq-linux-x86_64-static",
+		},
+	}
+
+	s.NotPanics(func() {
+		s.packet.NormalizeReleases(releases)
+
+	})
+
+	for _, packet := range s.packet.Versions {
+		s.Assert().Contains(expectedVersions, packet.Version.String())
+	}
+}
+
+func (s *packetSuite) TestNormalizeReleasesFailedToParseVersion() {
+	releases := map[string][]string{
+		"!jq-1.5": {
+			"https://github.com/stedolan/jq/releases/download/jq-1.4/jq-linux-x86_64",
+			"https://github.com/stedolan/jq/releases/download/jq-1.5rc2/jq-linux-x86_64",
+			"https://github.com/stedolan/jq/releases/download/jq-1.5rc1/jq-linux-x86_64-static",
+		},
+	}
+
+	s.NotPanics(func() {
+		s.packet.NormalizeReleases(releases)
+		s.Assert().Len(s.packet.Versions, 0)
+	})
+}
+
+func (s *packetSuite) TestNormalizeReleasesWrongVersion() {
+	releases := map[string][]string{
+		"jq-1.5.XXZ": {
+			"https://github.com/stedolan/jq/releases/download/jq-1.4/jq-linux-x86_64",
+			"https://github.com/stedolan/jq/releases/download/jq-1.5rc2/jq-linux-x86_64",
+			"https://github.com/stedolan/jq/releases/download/jq-1.5rc1/jq-linux-x86_64-static",
+		},
+	}
+
+	s.NotPanics(func() {
+		s.packet.NormalizeReleases(releases)
+		s.Assert().Len(s.packet.Versions, 0)
+	})
+}
+
+func (s *packetSuite) TestFetchVersions() {
+	s.NotPanics(func() {
+		s.packet.FetchVersions()
+		s.Assert().NotEmpty(s.packet.Versions)
+		s.packet.FetchVersions()
+	})
+}
+
+func (s *packetSuite) TestFetchVersionsWrongRemote() {
+	s.NotPanics(func() {
+		s.packetConfig.URLType = "wrongURLType"
+		out, _ := yaml.Marshal(s.packetConfig)
+		packet, _ := New(out)
+		packet.FetchVersions()
+	})
+}
+
+func (s *packetSuite) TestFetchVersionsWrongRemoteURL() {
+	s.NotPanics(func() {
+		s.packetConfig.URL = "https://example.com"
+		out, _ := yaml.Marshal(s.packetConfig)
+		packet, _ := New(out)
+		packet.FetchVersions()
+	})
+}
+
+func (s *packetSuite) TestFindVersion() {
+	s.NotPanics(func() {
+		s.packet.FetchVersions()
+		latestVersion := s.packet.Versions[0].Version.String()
+		version, ok := s.packet.FindVersion(latestVersion)
+		s.Assert().Equal(true, ok)
+		s.Assert().Equal(version.Version.String(), latestVersion)
+	})
+}
+
+func (s *packetSuite) TestFindVersionFails() {
+	s.NotPanics(func() {
+		s.packet.FetchVersions()
+		latestVersion := "WrongVersion"
+		version, ok := s.packet.FindVersion(latestVersion)
+		s.Assert().Equal(false, ok)
+		s.Assert().Equal(version, Version{})
+	})
+}
+
+func (s *packetSuite) TestLatestVersion() {
+	s.NotPanics(func() {
+		version, err := s.packet.LatestVersion()
+		latestVersion := s.packet.Versions[0]
+		s.Assert().NoError(err)
+		s.Assert().Equal(version, latestVersion)
+	})
+}
+
+func (s *packetSuite) TestEmptyVersionListLatestVersion() {
+	s.Assert().NotPanics(func() {
+		s.packetConfig.URL = "http://github.com/t/xxxg"
+		out, _ := yaml.Marshal(s.packetConfig)
+		packet, err := New(out)
+		_, err = packet.LatestVersion()
+		s.Assert().Error(err)
+		s.Assert().Contains(err.Error(), "version list has 0 elements")
 	})
 }
 
