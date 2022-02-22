@@ -14,7 +14,7 @@ import (
 )
 
 // All matched string + match group
-const regexMatchCount = 2
+const releaseRegexExpectedMatchCount = 2
 
 // rawPacket represents raw packet as it stores in .yaml manifests
 type rawPacket struct {

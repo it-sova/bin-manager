@@ -24,7 +24,7 @@ func (p *Packet) NormalizeReleases(releases map[string][]string) {
 		// Regex required to clean version from prefixes\affixes etc
 		// like jq-v1.6 -> 1.6 etc
 		matches := p.VersionRegex.FindStringSubmatch(release)
-		if len(matches) == regexMatchCount {
+		if len(matches) == releaseRegexExpectedMatchCount {
 			rawVersion = matches[1]
 		} else {
 			log.Errorf("Failed to parse packet version %v: %#v", release, matches)
