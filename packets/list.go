@@ -9,6 +9,7 @@ import (
 
 var packets []Packet
 
+//TODO: Add ability to load single packet
 // Load loads all packets from all repos into packets slice
 func Load() {
 	repos := repo.List()

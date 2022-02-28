@@ -91,7 +91,9 @@ func createEmptyState() error {
 
 // Append appends new InstalledPacket into state
 func (s *State) Append(packet InstalledPacket) error {
-	s.InstalledPackets = append(s.InstalledPackets, packet)
+	//s.InstalledPackets = append(s.InstalledPackets, packet)
+	// Insert element to beginning of slice
+	s.InstalledPackets = append([]InstalledPacket{packet}, s.InstalledPackets...)
 	err := s.Save()
 
 	return err

@@ -201,7 +201,7 @@ func (s *packetSuite) TestFetchVersionsWrongRemoteURL() {
 		packet, _ := New(out)
 		err := packet.FetchVersions()
 		s.Assert().Error(err)
-		s.Assert().Contains(err.Error(), "failed to get user and repo from packet UR")
+		s.Assert().Contains(err.Error(), "failed to get user and repo from packet URL")
 	})
 }
 
