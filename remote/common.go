@@ -1,24 +1,32 @@
 package remote
 
-import "fmt"
+import (
+	"fmt"
+	"net/url"
+)
 
+const packetURLSegments = 2
+
+// Remote represents generic remote interfaces
 type Remote interface {
 	GetName() string
-	ListPacketVersions(string) ([]string, error)
+	GetPacketAssets(*url.URL) (map[string][]string, error)
 }
 
-func RemoteList() []Remote {
+// List returns list of all registered remotes
+func List() []Remote {
 	return []Remote{
 		NewGithubRemote(),
 	}
 }
 
+// FindRemote finds remote by its name
 func FindRemote(name string) (Remote, error) {
-	for _, remote := range RemoteList() {
+	for _, remote := range List() {
 		if remote.GetName() == name {
 			return remote, nil
 		}
 	}
 
-	return nil, fmt.Errorf("Failed to find %v remote", name)
+	return nil, fmt.Errorf("failed to find %v remote", name)
 }

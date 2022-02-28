@@ -30,9 +30,9 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initLogger)
+	cobra.OnInitialize(initConfig)
 
 	rootCmd.PersistentFlags().StringVar(&logLevel, "loglevel", "info", "Log level")
 
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-
 }

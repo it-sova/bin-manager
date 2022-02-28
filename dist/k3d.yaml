@@ -1,5 +1,9 @@
 ---
-name: k3d
-url: https://github.com/rancher/k3d
-urlType: github
-description: k3d packet
+Name: k3d
+URL: https://github.com/rancher/k3d
+URLType: github
+Description: k3d packet
+VersionRegex: ^v(.+)$
+FilenameTemplates:
+  # k3d-linux-amd64
+  - "k3d-{{ .os }}-{{ .arch }}"

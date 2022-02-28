@@ -20,6 +20,7 @@ type logFormatter struct {
 
 func (f *logFormatter) Format(entry *log.Entry) ([]byte, error) {
 	var levelColor int
+
 	switch entry.Level {
 	case log.DebugLevel, log.TraceLevel:
 		levelColor = cyan
@@ -27,6 +28,8 @@ func (f *logFormatter) Format(entry *log.Entry) ([]byte, error) {
 		levelColor = yellow
 	case log.ErrorLevel, log.FatalLevel, log.PanicLevel:
 		levelColor = red
+	case log.InfoLevel:
+		levelColor = blue
 	default:
 		levelColor = blue
 	}

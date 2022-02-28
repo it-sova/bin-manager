@@ -5,13 +5,14 @@ import (
 
 	"github.com/it-sova/bin-manager/repo"
 	log "github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v3"
 )
 
-var packets []packet
+var packets []Packet
 
+//TODO: Add ability to load single packet
+// Load loads all packets from all repos into packets slice
 func Load() {
-	repos := repo.RepoList()
+	repos := repo.List()
 	for _, repo := range repos {
 		log.Info(fmt.Sprintf("Loaded repo %v (%v)", repo.GetName(), repo.GetPath()))
 
@@ -23,7 +24,7 @@ func Load() {
 				log.Error("Failed to read packet config for ", packetName)
 			}
 
-			packet, err := NewPacket(packetConfig)
+			packet, err := New(packetConfig)
 			if err != nil {
 				log.Error(fmt.Sprintf("Failed to unmarshal packet config for %v: %v", packetName, err.Error()))
 			}
@@ -34,21 +35,19 @@ func Load() {
 	}
 }
 
-func NewPacket(config []byte) (packet, error) {
-	packet := packet{}
-	err := yaml.Unmarshal(config, &packet)
-	if err != nil {
-		return packet, err
-	}
-
-	return packet, nil
+func GetAll() []Packet {
+	return packets
 }
 
+// ListAll lists all loaded packets
 func ListAll() {
-	log.Printf("%+v", packets)
+	for _, packet := range packets {
+		log.Infof("%v - %v - (%v)", packet.Name, packet.Description, packet.URL)
+	}
 }
 
-func FindPacket(name string) (packet, error) {
+// FindPacket finds packet in loaded list by its name
+func FindPacket(name string) (Packet, error) {
 	if len(packets) == 0 {
 		Load()
 	}
@@ -59,6 +58,18 @@ func FindPacket(name string) (packet, error) {
 		}
 	}
 
-	return packet{}, fmt.Errorf("Unable to find packet %v", name)
+	return Packet{}, fmt.Errorf("unable to find packet %v", name)
+}
 
+// ListVersions parses remote to get available packet versions
+func (p *Packet) ListVersions() {
+	if err := p.FetchVersions(); err == nil {
+		log.Infof("= %v:", p.Name)
+
+		for _, v := range p.Versions {
+			log.Infof("    %v", v.Version)
+		}
+	} else {
+		log.Errorf("Failed to fetch packet versions, %v", err.Error())
+	}
 }

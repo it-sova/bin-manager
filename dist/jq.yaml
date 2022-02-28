@@ -1,5 +1,13 @@
 ---
-name: jq
-url: https://github.com/stedolan/jq
-urlType: github
-description: jq packet
+Name: jq
+URL: https://github.com/stedolan/jq
+URLType: github
+Description: jq packet
+VersionRegex: ^jq-(.+)$
+FilenameTemplates:
+  # jq-linux-x86_64
+  - "jq-{{ .os }}-{{ .arch }}"
+  # jq-linux64
+  - "jq-{{ .os }}{{ .arch }}"
+  # jq-linux-x86_64-static
+  - "jq-{{ .os }}-{{ .arch }}-static"

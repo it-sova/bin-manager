@@ -4,6 +4,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// Repo represents repository ( sorce of packet dist. files ) interface
 type Repo interface {
 	GetName() string
 	GetPath() string
@@ -11,7 +12,8 @@ type Repo interface {
 	GetPacketConfig(string) ([]byte, error)
 }
 
-func RepoList() []Repo {
+// List Returns slice of loaded repositories
+func List() []Repo {
 	var repos []Repo
 
 	fsRepo, err := NewFileSystemRepo("")

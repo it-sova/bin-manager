@@ -1,30 +1,31 @@
 package repo
 
-type gitRepo struct {
+// TODO: To be implemented, just a placeholder atm
+
+type GitRepo struct {
 	name string
 	path string
 }
 
-func NewGitRepo() gitRepo {
-	return gitRepo{
+func NewGitRepo() GitRepo {
+	return GitRepo{
 		name: "GitRepo",
 		path: "https://github...",
 	}
 }
 
-func (r gitRepo) ScanPackets() []string {
+func (r GitRepo) ScanPackets() []string {
 	return []string{}
 }
 
-func (r gitRepo) GetPacketConfig(packet string) ([]byte, error) {
+func (r GitRepo) GetPacketConfig(packet string) ([]byte, error) {
 	return []byte{}, nil
-
 }
 
-func (r gitRepo) GetName() string {
+func (r GitRepo) GetName() string {
 	return r.name
 }
 
-func (r gitRepo) GetPath() string {
+func (r GitRepo) GetPath() string {
 	return r.path
 }
